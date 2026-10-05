@@ -21,6 +21,20 @@ A **4-layer ML pipeline** that:
 
 ---
 
+## 🏗️ System Architecture
+
+For a comprehensive breakdown of how data flows through the system, please view our **[Full Architecture Document (research/architecture.md)](research/architecture.md)**. 
+
+It contains 8 detailed flow diagrams explaining:
+- **Data Ingestion** (Yahoo Finance & Baltic Exchange)
+- **Feature Engineering** (Lags, rolling stats, exogenous variables)
+- **Model Training** (ARIMA, Prophet, LightGBM + Optuna)
+- **Vessel-Port Constraint Engine** (Draft/LOA filtering & ranking)
+- **Risk Advisory** (Volatility & congestion scoring)
+- **End-to-End User Decision Journey**
+
+---
+
 ## Project Structure
 
 ```
