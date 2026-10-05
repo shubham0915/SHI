@@ -1,0 +1,62 @@
+version: "3.9"
+
+services:
+  # ── PostgreSQL Database ─────────────────────────
+  db:
+    image: postgres:15-alpine
+    container_name: freight_db
+    environment:
+      POSTGRES_DB: freight_db
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d freight_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── FastAPI Backend ─────────────────────────────
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: freight_backend
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql://user:password@db:5432/freight_db
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./src:/app/src
+      - ./backend:/app/backend
+      - ./data:/app/data
+      - ./models:/app/models
+    command: uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload
+
+  # ── Streamlit Frontend ──────────────────────────
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: freight_frontend
+    env_file: .env
+    environment:
+      BACKEND_URL: http://backend:8000
+    ports:
+      - "8501:8501"
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend:/app/frontend
+    command: streamlit run frontend/app.py --server.port 8501 --server.address 0.0.0.0
+
+volumes:
+  postgres_data:
